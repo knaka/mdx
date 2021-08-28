@@ -193,7 +193,9 @@ func Preprocess(reader io.Reader, writer io.Writer) error {
 						modified := a[4]
 						switch cmd {
 						case "MdxLink":
-							modified, err = getTitle(arg)
+							var title string
+							title, err = getTitle(arg)
+							modified = "[" + title + "](" + arg + ")"
 						default:
 						}
 						return a[1] + modified + a[5]

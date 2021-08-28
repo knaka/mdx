@@ -126,7 +126,7 @@ foo
 bar
 ` + "```" + `
 
-Lorem ipsum “<!-- MdxLink(misc/foo.md) { -->misc/foo.md<!-- } -->” dolor “<!-- MdxLink(misc/bar.md) { -->Bar ドキュメント<!-- } -->” sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Lorem ipsum “<!-- MdxLink(misc/foo.md) { -->[misc/foo.md](misc/foo.md)<!-- } -->” dolor “<!-- MdxLink(misc/bar.md) { -->[Bar ドキュメント](misc/bar.md)<!-- } -->” sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
 Yeah.
 `
