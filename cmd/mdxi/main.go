@@ -61,6 +61,9 @@ func main() {
 			}()
 			bufOut := bufio.NewWriter(outFile)
 			err = mdx.Preprocess(inFile, bufOut)
+			if err != nil {
+				return
+			}
 			err = bufOut.Flush()
 			if err != nil {
 				return

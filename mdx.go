@@ -27,7 +27,8 @@ const (
 )
 
 var reMdxCommand *regexp.Regexp
-var reMdxInlineCommand *regexp.Regexp
+
+// var reMdxInlineCommand *regexp.Regexp
 var onceReMdxCommand sync.Once
 
 func isBlankString(s string) bool {
@@ -161,50 +162,58 @@ func Preprocess(reader io.Reader, writer io.Writer) error {
 			// MDX command
 			onceReMdxCommand.Do(func() {
 				reMdxCommand = regexp.MustCompile(`<!-- (Mdx[_a-zA-Z0-9]*)\(([^)]+)\) *({)? -->`)
-				reMdxInlineCommand = regexp.MustCompile(`(<!-- (Mdx[_a-zA-Z0-9]*)\(([^)]+)\) { -->)([^<]*)(<!-- } -->)`)
+				// reMdxInlineCommand = regexp.MustCompile(`(<!-- (Mdx[_a-zA-Z0-9]*)\(([^)]+)\) { -->)([^<]*)(<!-- } -->)`)
 			})
 			subMatches := reMdxCommand.FindStringSubmatch(line)
-			var done = false
+			// var done = false
 			if len(subMatches) >= 2 {
 				command := subMatches[1]
 				arg := subMatches[2]
 				brace := subMatches[3]
 				switch command {
 				case "MdxReplaceCode":
-					state = WaitingForCodeBlock
-					pathForCodeBlock = arg
-					done = true
-				case "MdxToc":
-					state = InsideTocBlock
-					wildcard = arg
-					if brace != "{" {
-						return errors.New("brace missing")
+					if _, err := os.Stat(arg); err == nil {
+						state = WaitingForCodeBlock
+						pathForCodeBlock = arg
 					}
-					done = true
-				default:
-				}
-			}
-			if !done {
-				if reMdxInlineCommand.FindString(line) != "" {
-					var err error
-					line = replaceAllStringSubMatchFunc(reMdxInlineCommand, line, func(a []string) string {
-						cmd := a[2]
-						arg := a[3]
-						modified := a[4]
-						switch cmd {
-						case "MdxLink":
-							var title string
-							title, err = getTitle(arg)
-							modified = "[" + title + "](" + arg + ")"
-						default:
-						}
-						return a[1] + modified + a[5]
-					})
+					// done = true
+				case "MdxToc":
+					paths, err := filepath.Glob(arg)
 					if err != nil {
 						return err
 					}
+					if len(paths) > 0 {
+						state = InsideTocBlock
+						wildcard = arg
+						if brace != "{" {
+							return errors.New("brace missing")
+						}
+					}
+					// done = true
+				default:
 				}
 			}
+			// if !done {
+			// 	if reMdxInlineCommand.FindString(line) != "" {
+			// 		var err error
+			// 		line = replaceAllStringSubMatchFunc(reMdxInlineCommand, line, func(a []string) string {
+			// 			cmd := a[2]
+			// 			arg := a[3]
+			// 			modified := a[4]
+			// 			switch cmd {
+			// 			case "MdxLink":
+			// 				var title string
+			// 				title, err = getTitle(arg)
+			// 				modified = "[" + title + "](" + arg + ")"
+			// 			default:
+			// 			}
+			// 			return a[1] + modified + a[5]
+			// 		})
+			// 		if err != nil {
+			// 			return err
+			// 		}
+			// 	}
+			// }
 			_, _ = fmt.Fprintln(writer, line)
 		default:
 			return errors.New("something is wrong")

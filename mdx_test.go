@@ -57,7 +57,10 @@ foo
 bar
 ` + "```" + `
 
-Lorem ipsum “<!-- MdxLink(misc/foo.md) { -->foo<!-- } -->” dolor “<!-- MdxLink(misc/bar.md) { -->bar<!-- } -->” sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+<!-- MdxToc(not_exist/*.md) { -->
+Stays
+As it is
+<!-- } -->
 
 Yeah.
 `
@@ -126,7 +129,10 @@ foo
 bar
 ` + "```" + `
 
-Lorem ipsum “<!-- MdxLink(misc/foo.md) { -->[misc/foo.md](misc/foo.md)<!-- } -->” dolor “<!-- MdxLink(misc/bar.md) { -->[Bar ドキュメント](misc/bar.md)<!-- } -->” sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+<!-- MdxToc(not_exist/*.md) { -->
+Stays
+As it is
+<!-- } -->
 
 Yeah.
 `
@@ -144,7 +150,7 @@ Yeah.
 	}
 }
 
-func TestMdxOpenFailure(t *testing.T) {
+func TestMdxOnlyExistingFilesIncluded(t *testing.T) {
 	inputString := `A C source follows:
 
 <!-- MdxReplaceCode(misc/hello.cc) -->
@@ -152,13 +158,43 @@ func TestMdxOpenFailure(t *testing.T) {
 ` + "```" + `
 foo
 ` + "```" + `
+
+<!-- MdxReplaceCode(misc/hello.c) -->
+
+` + "```" + `
+bar
+` + "```" + `
+`
+
+	expectedOutputString := `A C source follows:
+
+<!-- MdxReplaceCode(misc/hello.cc) -->
+
+` + "```" + `
+foo
+` + "```" + `
+
+<!-- MdxReplaceCode(misc/hello.c) -->
+
+` + "```" + `
+#include <stdio.h>
+
+int main (int argc, char** argv) {
+	printf("Hello!\n");
+}
+` + "```" + `
 `
 
 	input := strings.NewReader(inputString)
 	var output = &strings.Builder{}
 	err := Preprocess(input, output)
-	if err == nil || err.Error() != "open misc/hello.cc: no such file or directory" {
+	if err != nil {
 		t.Fatal("Error")
+	}
+	if expectedOutputString != output.String() {
+		t.Fatalf(`Unmatched:
+
+%s`, diff.LineDiff(expectedOutputString, output.String()))
 	}
 }
 
@@ -173,7 +209,7 @@ func TestMdxOpenIndentedFailure(t *testing.T) {
 	input := strings.NewReader(inputString)
 	var output = &strings.Builder{}
 	err := Preprocess(input, output)
-	if err == nil || err.Error() != "open misc/world.cc: no such file or directory" {
+	if err != nil || inputString != output.String() {
 		t.Fatal("Error")
 	}
 }
@@ -181,13 +217,32 @@ func TestMdxOpenIndentedFailure(t *testing.T) {
 func TestBlockMissing(t *testing.T) {
 	inputString := `A C source follows:
 
-<!-- MdxReplaceCode(misc/world.cc) -->
+<!-- MdxReplaceCode(misc/world.c) -->
 `
 
 	input := strings.NewReader(inputString)
 	var output = &strings.Builder{}
 	err := Preprocess(input, output)
 	if err.Error() != "not ground" {
+		t.Fatal("Error")
+	}
+}
+
+func TestCodeMissing(t *testing.T) {
+	inputString := `A C source follows:
+
+<!-- MdxReplaceCode(misc/not_exist.cc) -->
+
+~~~
+~~~
+
+aaa
+`
+
+	input := strings.NewReader(inputString)
+	var output = &strings.Builder{}
+	err := Preprocess(input, output)
+	if err != nil {
 		t.Fatal("Error")
 	}
 }
