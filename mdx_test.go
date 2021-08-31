@@ -1,281 +1,326 @@
 package mdx
 
 import (
-	"regexp"
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/andreyvit/diff"
 )
 
-func TestMdx(t *testing.T) {
-	inputString := `A C source follows:
+func TestCodeBlock(t *testing.T) {
+	input := bytes.NewBufferString(`Code block:
 
-<!-- MdxReplaceCode(misc/hello.c) -->
+<!-- mdxcode src=misc/hello.c -->
 
-` + "```" + `
-foo
-` + "```" + `
 
-<!-- MdxToc(misc/*.md) { -->
-<!-- } -->
-
-* Another C source in a list follows
-
-	<!-- MdxReplaceCode(misc/world.c) -->
-
-	` + "```" + `
-	bar
-	` + "```" + `
-
-Next, indented:
+			hello
+	
+			world
 
 * foo
 
-	<!-- MdxReplaceCode(misc/hello.c) -->
+  <!-- mdxcode src=misc/hello.c -->
 
-		aaa
+      foo
 
-		bbb
+      bar
 
-	<!-- -->
+Done.
+`)
+	expected := []byte(`Code block:
 
-		ccc
+<!-- mdxcode src=misc/hello.c -->
 
-	* bar
 
-		<!-- MdxReplaceCode(misc/world.c) -->
+			#include <stdio.h>
+			
+			int main (int argc, char** argv) {
+				printf("Hello!\n");
+			}
 
-		~~~c:world.c
-		baz
-		~~~
+* foo
 
-Rest
+  <!-- mdxcode src=misc/hello.c -->
 
-` + "```" + `
-foo
-bar
-` + "```" + `
+      #include <stdio.h>
+      
+      int main (int argc, char** argv) {
+      	printf("Hello!\n");
+      }
 
-<!-- MdxToc(not_exist/*.md) { -->
-Stays
-As it is
-<!-- } -->
+Done.
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal("error")
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
+		t.Fatalf(`Unmatched:
 
-Yeah.
-`
+%s`, diff.LineDiff(string(expected), output.String()))
+	}
+}
 
-	expectedOutputString := `A C source follows:
+func TestFencedCodeBlock(t *testing.T) {
+	input := bytes.NewBufferString(`Code block:
 
-<!-- MdxReplaceCode(misc/hello.c) -->
+<!-- mdxcode src=misc/hello.c -->
 
-` + "```" + `
+~~~
+hello
+
+world
+~~~
+
+* foo
+
+  <!-- mdxcode src=misc/hello.c -->
+
+  ~~~
+  hello
+  
+  world
+  ~~~
+
+Done.
+`)
+	expected := []byte(`Code block:
+
+<!-- mdxcode src=misc/hello.c -->
+
+~~~
 #include <stdio.h>
 
 int main (int argc, char** argv) {
 	printf("Hello!\n");
 }
-` + "```" + `
+~~~
 
-<!-- MdxToc(misc/*.md) { -->
+* foo
+
+  <!-- mdxcode src=misc/hello.c -->
+
+  ~~~
+  #include <stdio.h>
+  
+  int main (int argc, char** argv) {
+  	printf("Hello!\n");
+  }
+  ~~~
+
+Done.
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal("error")
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
+		t.Fatalf(`Unmatched:
+
+%s`, diff.LineDiff(string(expected), output.String()))
+	}
+}
+
+func TestFencedCodeBlockNotClosing(t *testing.T) {
+	input := bytes.NewBufferString(`Code block:
+
+<!-- mdxcode src=misc/hello.c -->
+
+Done
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err == nil || err.Error() != "mdx stack not empty" {
+		t.Fatal("error")
+	}
+}
+
+func TestToc(t *testing.T) {
+	input := bytes.NewBufferString(`TOC:
+
+<!-- mdxtoc pattern=misc/*.md -->
+<!-- /mdxtoc -->
+
+* foo
+
+  <!-- mdxtoc pattern=misc/*.md -->
+  foo  
+  <!-- /mdxtoc -->
+
+`)
+	expected := []byte(`TOC:
+
+<!-- mdxtoc pattern=misc/*.md -->
 * [Bar ドキュメント](misc/bar.md)
 * [misc/foo.md](misc/foo.md)
-<!-- } -->
-
-* Another C source in a list follows
-
-	<!-- MdxReplaceCode(misc/world.c) -->
-
-	` + "```" + `
-	#include <stdio.h>
-	
-	int main (int argc, char** argv) {
-		printf("World!\n");
-	}
-	` + "```" + `
-
-Next, indented:
+<!-- /mdxtoc -->
 
 * foo
 
-	<!-- MdxReplaceCode(misc/hello.c) -->
+  <!-- mdxtoc pattern=misc/*.md -->
+  * [Bar ドキュメント](misc/bar.md)
+  * [misc/foo.md](misc/foo.md)
+  <!-- /mdxtoc -->
 
-		#include <stdio.h>
-		
-		int main (int argc, char** argv) {
-			printf("Hello!\n");
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal(err.Error())
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
+		t.Fatalf(`Unmatched:
+
+%s`, diff.LineDiff(string(expected), output.String()))
+	}
+}
+
+func TestTocDifferentDepth(t *testing.T) {
+	input := bytes.NewBufferString(`TOC:
+
+<!-- mdxtoc pattern=misc/*.md -->
+* foo
+* bar
+
+other document
+
+* foo
+
+  <!-- /mdxtoc -->
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err == nil {
+		t.Fatal("Do not succeed")
+	} else {
+		if err.Error() != "not matched2" {
+			t.Fatal("not expected error")
 		}
-
-	<!-- -->
-
-		ccc
-
-	* bar
-
-		<!-- MdxReplaceCode(misc/world.c) -->
-
-		~~~c:world.c
-		#include <stdio.h>
-		
-		int main (int argc, char** argv) {
-			printf("World!\n");
-		}
-		~~~
-
-Rest
-
-` + "```" + `
-foo
-bar
-` + "```" + `
-
-<!-- MdxToc(not_exist/*.md) { -->
-Stays
-As it is
-<!-- } -->
-
-Yeah.
-`
-
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	err := Preprocess(input, output)
-	if err != nil {
-		t.Fatal("Error occurred.", err)
 	}
-	if expectedOutputString != output.String() {
+}
+
+func TestLinks(t *testing.T) {
+	input := bytes.NewBufferString(`Links:
+
+Inline-links <!-- mdxlink href=misc/foo.md -->...<!-- /mdxlink -->
+and <!-- mdxlink href=misc/bar.md -->...<!-- /mdxlink --> works.
+`)
+	expected := []byte(`Links:
+
+Inline-links <!-- mdxlink href=misc/foo.md -->[misc/foo.md](misc/foo.md)<!-- /mdxlink -->
+and <!-- mdxlink href=misc/bar.md -->[Bar ドキュメント](misc/bar.md)<!-- /mdxlink --> works.
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal(err.Error())
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
 		t.Fatalf(`Unmatched:
 
-%s`, diff.LineDiff(expectedOutputString, output.String()))
+%s`, diff.LineDiff(string(expected), output.String()))
 	}
 }
 
-func TestMdxOnlyExistingFilesIncluded(t *testing.T) {
-	inputString := `A C source follows:
+func _TestIncludes(t *testing.T) {
+	input := bytes.NewBufferString(`Includes:
 
-<!-- MdxReplaceCode(misc/hello.cc) -->
+<!-- mdxinclude src=misc/foo.md -->
+<!-- /mdxinclude -->
+`)
+	expected := []byte(`Includes:
 
-` + "```" + `
-foo
-` + "```" + `
-
-<!-- MdxReplaceCode(misc/hello.c) -->
-
-` + "```" + `
-bar
-` + "```" + `
-`
-
-	expectedOutputString := `A C source follows:
-
-<!-- MdxReplaceCode(misc/hello.cc) -->
-
-` + "```" + `
-foo
-` + "```" + `
-
-<!-- MdxReplaceCode(misc/hello.c) -->
-
-` + "```" + `
-#include <stdio.h>
-
-int main (int argc, char** argv) {
-	printf("Hello!\n");
-}
-` + "```" + `
-`
-
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	err := Preprocess(input, output)
-	if err != nil {
-		t.Fatal("Error")
+<!-- mdxinclude src=misc/foo.md -->
+<!-- /mdxinclude -->
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal(err.Error())
 	}
-	if expectedOutputString != output.String() {
+	if bytes.Compare(expected, output.Bytes()) != 0 {
 		t.Fatalf(`Unmatched:
 
-%s`, diff.LineDiff(expectedOutputString, output.String()))
+%s`, diff.LineDiff(string(expected), output.String()))
 	}
 }
 
-func TestMdxOpenIndentedFailure(t *testing.T) {
-	inputString := `A C source follows:
+func TestTitle(t *testing.T) {
+	input1 := bytes.NewBufferString(`---
+title: My Title
+---
+`)
+	title := getMarkdownTitleSub(input1, "default")
+	if title != "My Title" {
+		t.Fatal("Could not find title")
+	}
+}
 
-<!-- MdxReplaceCode(misc/world.cc) -->
+func TestTitle2(t *testing.T) {
+	input1 := bytes.NewBufferString(`---
 
-	foo
-`
+---
+title: Foo Bar
+`)
+	title := getMarkdownTitleSub(input1, "default")
+	if title != "default" {
+		t.Fatal("How did you get it?")
+	}
+}
 
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	err := Preprocess(input, output)
-	if err != nil || inputString != output.String() {
+func TestTitle3(t *testing.T) {
+	input1 := bytes.NewBufferString(`% My Document
+
+Document.
+`)
+	title := getMarkdownTitleSub(input1, "default")
+	if title != "My Document" {
+		t.Fatal("Could not get title")
+	}
+}
+
+func TestTitle4(t *testing.T) {
+	input1 := bytes.NewBufferString(`% My document title 
+ is long
+Document.
+`)
+	title := getMarkdownTitleSub(input1, "default")
+	if title != "My document title is long" {
+		t.Fatal("Could not get title")
+	}
+}
+
+func TestTitle5(t *testing.T) {
+	input1 := bytes.NewBufferString(`Title:   My title
+Author:  Foo Bar
+
+Main document.
+`)
+	title := getMarkdownTitleSub(input1, "default")
+	if title != "My title" {
+		t.Fatal("Could not get title")
+	}
+}
+
+// Unknown commands are ignored
+func TestUnknown(t *testing.T) {
+	input := bytes.NewBufferString(`Includes:
+
+<!-- mdxunknown src=misc/foo.md -->
+<!-- /mdxunknown -->
+
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err == nil {
+		t.Fatal(err.Error())
+	}
+}
+
+func TestTocFail(t *testing.T) {
+	input := bytes.NewBufferString(`TOC:
+
+<!-- mdxtoc pattern=misc/*.md -->
+<!-- /mdxtoc -->
+<!-- /mdxtoc -->
+
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err == nil {
 		t.Fatal("Error")
-	}
-}
-
-func TestBlockMissing(t *testing.T) {
-	inputString := `A C source follows:
-
-<!-- MdxReplaceCode(misc/world.c) -->
-`
-
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	err := Preprocess(input, output)
-	if err.Error() != "not ground" {
-		t.Fatal("Error")
-	}
-}
-
-func TestCodeMissing(t *testing.T) {
-	inputString := `A C source follows:
-
-<!-- MdxReplaceCode(misc/not_exist.cc) -->
-
-~~~
-~~~
-
-aaa
-`
-
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	err := Preprocess(input, output)
-	if err != nil {
-		t.Fatal("Error")
-	}
-}
-
-func TestIgnoreUnknownCommand(t *testing.T) {
-	inputString := `A C source follows:
-
-<!-- MdxHogeHoge(foobar) { -->
-foo
-bar
-<!-- } -->
-hoge
-fuga
-`
-
-	input := strings.NewReader(inputString)
-	var output = &strings.Builder{}
-	_ = Preprocess(input, output)
-
-	if inputString != output.String() {
-		t.Fatalf(`Unmatched:
-
-%s`, diff.LineDiff(inputString, output.String()))
-	}
-}
-
-func TestRegexpReplaceAll(t *testing.T) {
-	line := "foo#bar hoge#fuga"
-	re := regexp.MustCompile(`([a-z]+)#([a-z]+)`)
-	modified := replaceAllStringSubMatchFunc(re, line, func(a []string) string {
-		return a[1] + "@" + a[2]
-	})
-	if modified != "foo@bar hoge@fuga" {
-		t.Fatal("Unmatched")
 	}
 }

@@ -63,7 +63,7 @@ mdx - ファイル間の相互参照解決のための Markdown プリプロセ�
     mdx # input from stdin and output to stdout
     mdx -o <file> <files> # input from files and output to file
 
-<!-- MdxToc(*.md) { -->
+<!--mdxtoc pattern=*.md-->
 * [README-ja.md](README-ja.md)
 * [Document for MDX](README.md)
-<!-- } -->
+<!--/mdxtoc-->
