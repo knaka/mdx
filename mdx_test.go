@@ -2,6 +2,7 @@ package mdx
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/andreyvit/diff"
@@ -129,7 +130,7 @@ func TestFencedCodeBlockNotClosing(t *testing.T) {
 Done
 `)
 	output := bytes.NewBuffer(nil)
-	if err := PreprocessWithoutDir(output, input); err == nil || err.Error() != "mdx stack not empty" {
+	if err := PreprocessWithoutDir(output, input); err == nil || err.Error() != "stack not empty" {
 		t.Fatal("error")
 	}
 }
@@ -190,7 +191,7 @@ other document
 	if err := PreprocessWithoutDir(output, input); err == nil {
 		t.Fatal("Do not succeed")
 	} else {
-		if err.Error() != "not matched2" {
+		if !strings.HasPrefix(err.Error(), "commands do not match") {
 			t.Fatal("not expected error")
 		}
 	}
@@ -322,5 +323,56 @@ func TestTocFail(t *testing.T) {
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err == nil {
 		t.Fatal("Error")
+	}
+}
+
+func TestCodeBlockWithBlankLines(t *testing.T) {
+	// fails to figure out correct indent
+	// library does not have meta-info of the block
+	t.Skip()
+	input := bytes.NewBufferString(`Code block:
+
+* foo
+
+  <!-- mdxcode src=misc/code_with_blank_lines.c -->
+
+  ~~~
+    
+  
+  #include <stdio.h>
+  
+  int main (int argc, char** argv) {
+  printf("Hello!\n");
+  }
+  ~~~
+
+<!-- /mdxcode -->
+`)
+	expected := []byte(`Code block:
+
+* foo
+
+  <!-- mdxcode src=misc/code_with_blank_lines.c -->
+
+  ~~~
+  
+  
+  #include <stdio.h>
+  
+  int main (int argc, char** argv) {
+  	printf("Hello!\n");
+  }
+  ~~~
+
+<!-- /mdxcode -->
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal("error")
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
+		t.Fatalf(`Unmatched:
+
+%s`, diff.LineDiff(string(expected), output.String()))
 	}
 }

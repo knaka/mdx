@@ -26,12 +26,12 @@ func waitForDebugger() {
 			if err == nil {
 				break
 			}
-			fmt.Println("cp")
 		}
 	}
 }
 
 func main() {
+	waitForDebugger()
 	var outPath string
 	flag.StringVarP(&outPath, "outfile", "o", "", "Output outFile")
 	var shouldPrintHelp bool
@@ -39,22 +39,26 @@ func main() {
 	var inPlace bool
 	flag.BoolVarP(&inPlace, "in-place", "i", false, "Edit file(s) in place")
 	flag.Parse()
-	if inPlace && outPath != "" {
-		_, _ = fmt.Fprintln(os.Stderr, "Cannot specify \"outfile\" and \"in-place\" simultaneously")
-		os.Exit(1)
-	}
 	if shouldPrintHelp {
 		flag.Usage()
 		os.Exit(0)
 	}
-	waitForDebugger()
+	if inPlace {
+		if outPath != "" {
+			_, _ = fmt.Fprintln(os.Stderr, "Do not specify \"outfile\" and \"in-place\" simultaneously")
+			os.Exit(1)
+		}
+	} else {
+		if outPath == "" {
+			outPath = "-"
+		}
+	}
 	args := flag.Args()
 	if inPlace {
 		for _, inPath := range args {
 			var err error
 			func() {
 				var inFile *os.File
-				var err error
 				inFile, err = os.Open(inPath)
 				if err != nil {
 					log.Fatal("Failed to open inFile outFile: ", inPath)
@@ -76,8 +80,12 @@ func main() {
 						log.Fatal("Error", err.Error())
 					}
 				}
-				err = mdx.Preprocess(bufOut, inFile, filepath.Dir(inPath), absPath)
+				var changed bool
+				_, changed, err = mdx.Preprocess(bufOut, inFile, filepath.Dir(inPath), absPath)
 				if err != nil {
+					return
+				}
+				if !changed {
 					return
 				}
 				err = bufOut.Flush()
@@ -101,13 +109,13 @@ func main() {
 				}
 			}()
 			if err != nil {
-				log.Fatal("Failed to preprocess")
+				log.Fatalln("Failed to preprocess:", err.Error())
 			}
 		}
 	} else {
 		var outFile *os.File
 		var output io.Writer
-		if outPath == "" || outPath == "-" {
+		if outPath == "-" {
 			outFile = os.Stdout
 		} else {
 			var err error
@@ -133,7 +141,7 @@ func main() {
 			var err error
 			func() {
 				var inFile *os.File
-				if inPath == "" || inPath == "-" {
+				if inPath == "-" {
 					inFile = os.Stdin
 				} else {
 					var err error
@@ -149,7 +157,16 @@ func main() {
 						log.Fatal("Error", err.Error())
 					}
 				}
-				err = mdx.Preprocess(output, inFile, filepath.Dir(inPath), absPath)
+				var workDir string
+				if inPath == "-" {
+					workDir, err = os.Getwd()
+					if err != nil {
+						log.Fatal("Failed to get working directory")
+					}
+				} else {
+					workDir = filepath.Dir(inPath)
+				}
+				_, _, err = mdx.Preprocess(output, inFile, workDir, absPath)
 			}()
 			if err != nil {
 				log.Fatal("Failed to preprocess", err.Error())

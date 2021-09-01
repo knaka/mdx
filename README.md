@@ -1,5 +1,5 @@
 ---
-title: Document for MDX
+title: Document for mdx(1)
 ---
 
 # mdx
