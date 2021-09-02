@@ -27,6 +27,9 @@ func writeToc(writer io.Writer, wildcard string, indent string, includerPath str
 	}
 	sort.Strings(paths)
 	for _, path := range paths {
+		if filepath.Separator != '/' {
+			path = filepath.ToSlash(path)
+		}
 		title := getMarkdownTitle(path)
 		s := title
 		if a, err := filepath.Abs(path); err != nil {
