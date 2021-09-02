@@ -1,15 +1,15 @@
-package mdx
+package mdpp
 
 import "fmt"
 
-type MdxError struct {
+type MdppError struct {
 	msg      string
 	absPath  string
 	source   []byte
 	position int
 }
 
-func (me *MdxError) Error() string {
+func (me *MdppError) Error() string {
 	lineNo := 1
 	for i := me.position; i >= 0; i-- {
 		r := rune(me.source[i])
@@ -20,8 +20,8 @@ func (me *MdxError) Error() string {
 	return fmt.Sprintf("%s (%s:%d)", me.msg, me.absPath, lineNo)
 }
 
-var _ error = (*MdxError)(nil)
+var _ error = (*MdppError)(nil)
 
-func NewError(msg string, absPath string, source []byte, position int) *MdxError {
-	return &MdxError{msg, absPath, source, position}
+func NewError(msg string, absPath string, source []byte, position int) *MdppError {
+	return &MdppError{msg, absPath, source, position}
 }

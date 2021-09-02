@@ -1,4 +1,4 @@
-module github.com/knaka/mdx
+module github.com/knaka/mdpp
 
 go 1.16
 

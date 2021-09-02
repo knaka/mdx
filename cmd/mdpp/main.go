@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/knaka/mdx"
+	"github.com/knaka/mdpp"
 	"github.com/mattn/go-isatty"
 
 	flag "github.com/spf13/pflag"
@@ -65,7 +65,7 @@ func main() {
 				}
 				defer func() { _ = inFile.Close() }()
 				var outFile *os.File
-				outFile, err = ioutil.TempFile("", "mdxi")
+				outFile, err = ioutil.TempFile("", "mdpp")
 				if err != nil {
 					return
 				}
@@ -81,7 +81,7 @@ func main() {
 					}
 				}
 				var changed bool
-				_, changed, err = mdx.Preprocess(bufOut, inFile, filepath.Dir(inPath), absPath)
+				_, changed, err = mdpp.Preprocess(bufOut, inFile, filepath.Dir(inPath), absPath)
 				if err != nil {
 					return
 				}
@@ -166,7 +166,7 @@ func main() {
 				} else {
 					workDir = filepath.Dir(inPath)
 				}
-				_, _, err = mdx.Preprocess(output, inFile, workDir, absPath)
+				_, _, err = mdpp.Preprocess(output, inFile, workDir, absPath)
 			}()
 			if err != nil {
 				log.Fatal("Failed to preprocess: ", err.Error())

@@ -1,4 +1,4 @@
-package mdx
+package mdpp
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 func TestCodeBlock(t *testing.T) {
 	input := bytes.NewBufferString(`Code block:
 
-<!-- mdxcode src=misc/hello.c -->
+<!-- mdppcode src=misc/hello.c -->
 
 
 			hello
@@ -20,7 +20,7 @@ func TestCodeBlock(t *testing.T) {
 
 * foo
 
-  <!-- mdxcode src=misc/hello.c -->
+  <!-- mdppcode src=misc/hello.c -->
 
       foo
 
@@ -30,7 +30,7 @@ Done.
 `)
 	expected := []byte(`Code block:
 
-<!-- mdxcode src=misc/hello.c -->
+<!-- mdppcode src=misc/hello.c -->
 
 
 			#include <stdio.h>
@@ -41,7 +41,7 @@ Done.
 
 * foo
 
-  <!-- mdxcode src=misc/hello.c -->
+  <!-- mdppcode src=misc/hello.c -->
 
       #include <stdio.h>
       
@@ -65,7 +65,7 @@ Done.
 func TestFencedCodeBlock(t *testing.T) {
 	input := bytes.NewBufferString(`Code block:
 
-<!-- mdxcode src=misc/hello.c -->
+<!-- mdppcode src=misc/hello.c -->
 
 ~~~
 hello
@@ -75,7 +75,7 @@ world
 
 * foo
 
-  <!-- mdxcode src=misc/hello.c -->
+  <!-- mdppcode src=misc/hello.c -->
 
   ~~~
   hello
@@ -87,7 +87,7 @@ Done.
 `)
 	expected := []byte(`Code block:
 
-<!-- mdxcode src=misc/hello.c -->
+<!-- mdppcode src=misc/hello.c -->
 
 ~~~
 #include <stdio.h>
@@ -99,7 +99,7 @@ int main (int argc, char** argv) {
 
 * foo
 
-  <!-- mdxcode src=misc/hello.c -->
+  <!-- mdppcode src=misc/hello.c -->
 
   ~~~
   #include <stdio.h>
@@ -125,7 +125,7 @@ Done.
 func TestFencedCodeBlockNotClosing(t *testing.T) {
 	input := bytes.NewBufferString(`Code block:
 
-<!-- mdxcode src=misc/hello.c -->
+<!-- mdppcode src=misc/hello.c -->
 
 Done
 `)
@@ -138,29 +138,29 @@ Done
 func TestToc(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdxtoc pattern=misc/*.md -->
-<!-- /mdxtoc -->
+<!-- mdpptoc pattern=misc/*.md -->
+<!-- /mdpptoc -->
 
 * foo
 
-  <!-- mdxtoc pattern=misc/*.md -->
+  <!-- mdpptoc pattern=misc/*.md -->
   foo  
-  <!-- /mdxtoc -->
+  <!-- /mdpptoc -->
 
 `)
 	expected := []byte(`TOC:
 
-<!-- mdxtoc pattern=misc/*.md -->
+<!-- mdpptoc pattern=misc/*.md -->
 * [Bar ドキュメント](misc/bar.md)
 * [misc/foo.md](misc/foo.md)
-<!-- /mdxtoc -->
+<!-- /mdpptoc -->
 
 * foo
 
-  <!-- mdxtoc pattern=misc/*.md -->
+  <!-- mdpptoc pattern=misc/*.md -->
   * [Bar ドキュメント](misc/bar.md)
   * [misc/foo.md](misc/foo.md)
-  <!-- /mdxtoc -->
+  <!-- /mdpptoc -->
 
 `)
 	output := bytes.NewBuffer(nil)
@@ -177,7 +177,7 @@ func TestToc(t *testing.T) {
 func TestTocDifferentDepth(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdxtoc pattern=misc/*.md -->
+<!-- mdpptoc pattern=misc/*.md -->
 * foo
 * bar
 
@@ -185,7 +185,7 @@ other document
 
 * foo
 
-  <!-- /mdxtoc -->
+  <!-- /mdpptoc -->
 `)
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err == nil {
@@ -200,13 +200,13 @@ other document
 func TestLinks(t *testing.T) {
 	input := bytes.NewBufferString(`Links:
 
-Inline-links <!-- mdxlink href=misc/foo.md -->...<!-- /mdxlink -->
-and <!-- mdxlink href=misc/bar.md -->...<!-- /mdxlink --> works.
+Inline-links <!-- mdpplink href=misc/foo.md -->...<!-- /mdpplink -->
+and <!-- mdpplink href=misc/bar.md -->...<!-- /mdpplink --> works.
 `)
 	expected := []byte(`Links:
 
-Inline-links <!-- mdxlink href=misc/foo.md -->[misc/foo.md](misc/foo.md)<!-- /mdxlink -->
-and <!-- mdxlink href=misc/bar.md -->[Bar ドキュメント](misc/bar.md)<!-- /mdxlink --> works.
+Inline-links <!-- mdpplink href=misc/foo.md -->[misc/foo.md](misc/foo.md)<!-- /mdpplink -->
+and <!-- mdpplink href=misc/bar.md -->[Bar ドキュメント](misc/bar.md)<!-- /mdpplink --> works.
 `)
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err != nil {
@@ -222,13 +222,13 @@ and <!-- mdxlink href=misc/bar.md -->[Bar ドキュメント](misc/bar.md)<!-- /
 func _TestIncludes(t *testing.T) {
 	input := bytes.NewBufferString(`Includes:
 
-<!-- mdxinclude src=misc/foo.md -->
-<!-- /mdxinclude -->
+<!-- mdppinclude src=misc/foo.md -->
+<!-- /mdppinclude -->
 `)
 	expected := []byte(`Includes:
 
-<!-- mdxinclude src=misc/foo.md -->
-<!-- /mdxinclude -->
+<!-- mdppinclude src=misc/foo.md -->
+<!-- /mdppinclude -->
 `)
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err != nil {
@@ -302,8 +302,8 @@ Main document.
 func TestUnknown(t *testing.T) {
 	input := bytes.NewBufferString(`Includes:
 
-<!-- mdxunknown src=misc/foo.md -->
-<!-- /mdxunknown -->
+<!-- mdppunknown src=misc/foo.md -->
+<!-- /mdppunknown -->
 
 `)
 	output := bytes.NewBuffer(nil)
@@ -315,9 +315,9 @@ func TestUnknown(t *testing.T) {
 func TestTocFail(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdxtoc pattern=misc/*.md -->
-<!-- /mdxtoc -->
-<!-- /mdxtoc -->
+<!-- mdpptoc pattern=misc/*.md -->
+<!-- /mdpptoc -->
+<!-- /mdpptoc -->
 
 `)
 	output := bytes.NewBuffer(nil)
@@ -334,7 +334,7 @@ func TestCodeBlockWithBlankLines(t *testing.T) {
 
 * foo
 
-  <!-- mdxcode src=misc/code_with_blank_lines.c -->
+  <!-- mdppcode src=misc/code_with_blank_lines.c -->
 
   ~~~
     
@@ -346,13 +346,13 @@ func TestCodeBlockWithBlankLines(t *testing.T) {
   }
   ~~~
 
-<!-- /mdxcode -->
+<!-- /mdppcode -->
 `)
 	expected := []byte(`Code block:
 
 * foo
 
-  <!-- mdxcode src=misc/code_with_blank_lines.c -->
+  <!-- mdppcode src=misc/code_with_blank_lines.c -->
 
   ~~~
   
@@ -364,7 +364,7 @@ func TestCodeBlockWithBlankLines(t *testing.T) {
   }
   ~~~
 
-<!-- /mdxcode -->
+<!-- /mdppcode -->
 `)
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err != nil {
