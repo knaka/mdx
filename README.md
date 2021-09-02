@@ -86,8 +86,3 @@ Link to markdown. Input:
 Output:
 
     It is described in the “<!-- mdpplink href=hello.md -->Hello Document<!-- /mdpplink -->.”
-
-# ToDo
-
-* [ ] Inclusion command (includes header, footer...)
-* [ ] Code block for files which starts with blank or indented lines
