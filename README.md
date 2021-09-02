@@ -4,6 +4,11 @@ title: Document for mdpp(1)
 
 mdpp(1)
 
+[![https://pkg.go.dev/github.com/knaka/mdpp](https://pkg.go.dev/badge/github.com/knaka/mdpp.svg)](https://pkg.go.dev/github.com/knaka/mdpp)
+[![Actions: Result](https://github.com/knaka/mdpp/actions/workflows/test.yml/badge.svg)](https://github.com/knaka/mdpp/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![https://goreportcard.com/report/github.com/knaka/mdpp](https://goreportcard.com/badge/github.com/knaka/mdpp)](https://goreportcard.com/report/github.com/knaka/mdpp)
+
 > Japanese version is here: <!-- mdpplink href=./README-ja.md -->[mdpp(1) ドキュメント（日本語）](./README-ja.md)<!-- /mdpplink -->
 
 # NAME
