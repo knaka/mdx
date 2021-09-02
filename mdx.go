@@ -269,6 +269,9 @@ func Preprocess(writerOut io.Writer, reader io.Reader,
 				break
 			}
 			segments := node.Lines()
+			if segments.Len() == 0 {
+				return ast.WalkStop, NewError("empty fenced code block", absPath, source, position)
+			}
 			firstSegment := segments.At(0)
 			indent := getIndentBeforeSegment(firstSegment, source)
 			position, err = writeStrBeforeSegmentsStart(writer, source, position, segments, -len(indent))

@@ -109,7 +109,7 @@ func main() {
 				}
 			}()
 			if err != nil {
-				log.Fatalln("Failed to preprocess:", err.Error())
+				log.Fatalln("Failed to preprocess: ", err.Error())
 			}
 		}
 	} else {
@@ -169,7 +169,7 @@ func main() {
 				_, _, err = mdx.Preprocess(output, inFile, workDir, absPath)
 			}()
 			if err != nil {
-				log.Fatal("Failed to preprocess", err.Error())
+				log.Fatal("Failed to preprocess: ", err.Error())
 			}
 		}
 	}

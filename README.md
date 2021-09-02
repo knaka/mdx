@@ -18,7 +18,7 @@ mdx - Markdown preprocessor for resolving cross-references between files
 
 Concatenate the rewritten results and output to standard output.
 
-    mdx input1.md input2.md > output.md
+    mdx input1.mdx input2.mdx > output.md
 
 In-place rewriting.
 

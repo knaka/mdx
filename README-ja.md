@@ -16,7 +16,7 @@ mdx - ファイル間の相互参照を解決するための Markdown プリプ�
 
 書き換えた結果を連結して標準出力へ出力する。
 
-    mdx input1.md input2.md > output.md
+    mdx input1.mdx input2.mdx > output.md
 
 インプレースで書き換える。
 
