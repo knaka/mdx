@@ -22,6 +22,10 @@ import (
 
 // Write index to io.Writer with indent
 func writeIndex(writer io.Writer, wildcard string, indent string, includerPath string) error {
+	includerPath, err := filepath.EvalSymlinks(includerPath)
+	if err != nil {
+		return err
+	}
 	paths, err := fileex.Glob(wildcard)
 	if err != nil {
 		return err
