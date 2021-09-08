@@ -39,6 +39,9 @@ func writeIndex(writer io.Writer, wildcard string, indent string, includerPath s
 		}
 		title := GetMarkdownTitle(path)
 		dirname := filepath.Dir(path)
+		if filepath.Separator != '/' {
+			dirname = filepath.ToSlash(dirname)
+		}
 		if dirname != dirnamePrev {
 			if _, err := fmt.Fprintln(writer, indent+"* "+dirname); err != nil {
 				return err
