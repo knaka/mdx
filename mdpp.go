@@ -30,7 +30,7 @@ func writeToc(writer io.Writer, wildcard string, indent string, includerPath str
 		if filepath.Separator != '/' {
 			path = filepath.ToSlash(path)
 		}
-		title := getMarkdownTitle(path)
+		title := GetMarkdownTitle(path)
 		s := title
 		if a, err := filepath.Abs(path); err != nil {
 			return err
@@ -179,7 +179,7 @@ func Preprocess(writerOut io.Writer, reader io.Reader,
 						return ast.WalkStop, NewError("failed to downcast mdpplink", absPath, source, segment.Start)
 					}
 					mdppStack = mdppStack[:len(mdppStack)-1]
-					title := getMarkdownTitle(elem.href)
+					title := GetMarkdownTitle(elem.href)
 					modified := "[" + title + "](" + elem.href + ")"
 					if _, err := fmt.Fprint(writer, modified); err != nil {
 						return ast.WalkStop, err

@@ -246,7 +246,7 @@ func TestTitle(t *testing.T) {
 title: My Title
 ---
 `)
-	title := getMarkdownTitleSub(input1, "default")
+	title := GetMarkdownTitleSub(input1, "default")
 	if title != "My Title" {
 		t.Fatal("Could not find title")
 	}
@@ -258,7 +258,7 @@ func TestTitle2(t *testing.T) {
 ---
 title: Foo Bar
 `)
-	title := getMarkdownTitleSub(input1, "default")
+	title := GetMarkdownTitleSub(input1, "default")
 	if title != "default" {
 		t.Fatal("How did you get it?")
 	}
@@ -269,7 +269,7 @@ func TestTitle3(t *testing.T) {
 
 Document.
 `)
-	title := getMarkdownTitleSub(input1, "default")
+	title := GetMarkdownTitleSub(input1, "default")
 	if title != "My Document" {
 		t.Fatal("Could not get title")
 	}
@@ -280,7 +280,7 @@ func TestTitle4(t *testing.T) {
  is long
 Document.
 `)
-	title := getMarkdownTitleSub(input1, "default")
+	title := GetMarkdownTitleSub(input1, "default")
 	if title != "My document title is long" {
 		t.Fatal("Could not get title")
 	}
@@ -292,7 +292,7 @@ Author:  Foo Bar
 
 Main document.
 `)
-	title := getMarkdownTitleSub(input1, "default")
+	title := GetMarkdownTitleSub(input1, "default")
 	if title != "My title" {
 		t.Fatal("Could not get title")
 	}

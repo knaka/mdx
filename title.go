@@ -17,7 +17,7 @@ const (
 	YamlMetadataBlockStyle
 )
 
-func getMarkdownTitle(path string) string {
+func GetMarkdownTitle(path string) string {
 	input, err := os.Open(path)
 	if err != nil {
 		return ""
@@ -25,10 +25,10 @@ func getMarkdownTitle(path string) string {
 	defer func() {
 		_ = input.Close()
 	}()
-	return getMarkdownTitleSub(input, path)
+	return GetMarkdownTitleSub(input, path)
 }
 
-func getMarkdownTitleSub(input io.Reader, defaultTitle string) string {
+func GetMarkdownTitleSub(input io.Reader, defaultTitle string) string {
 	title := defaultTitle
 	style := UnknownStyle
 	scanner := bufio.NewScanner(input)
