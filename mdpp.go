@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	fileex "github.com/spiegel-im-spiegel/file"
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/ast"
@@ -19,25 +20,38 @@ import (
 	mtext "github.com/yuin/goldmark/text"
 )
 
-// Write TOC to io.Writer with indent
-func writeToc(writer io.Writer, wildcard string, indent string, includerPath string) error {
-	paths, err := filepath.Glob(wildcard)
+// Write index to io.Writer with indent
+func writeIndex(writer io.Writer, wildcard string, indent string, includerPath string) error {
+	paths, err := fileex.Glob(wildcard)
 	if err != nil {
 		return err
 	}
 	sort.Strings(paths)
+	dirnamePrev := ""
+	dirIndent := ""
 	for _, path := range paths {
 		if filepath.Separator != '/' {
 			path = filepath.ToSlash(path)
 		}
 		title := GetMarkdownTitle(path)
+		dirname := filepath.Dir(path)
+		if dirname != dirnamePrev {
+			if _, err := fmt.Fprintln(writer, indent+"* "+dirname); err != nil {
+				return err
+			}
+			dirIndent = "  "
+		}
+		if path == title {
+			title = filepath.Base(path)
+		}
+		dirnamePrev = dirname
 		s := title
 		if a, err := filepath.Abs(path); err != nil {
 			return err
 		} else if a != includerPath {
 			s = "[" + title + "](" + path + ")"
 		}
-		if _, err := fmt.Fprintln(writer, indent+"* "+s); err != nil {
+		if _, err := fmt.Fprintln(writer, indent+dirIndent+"* "+s); err != nil {
 			return err
 		}
 	}
@@ -250,7 +264,7 @@ func Preprocess(writerOut io.Writer, reader io.Reader,
 
 					}
 					mdppStack = mdppStack[:len(mdppStack)-1]
-					if err := writeToc(writer, elem.pattern, indent, inPath); err != nil {
+					if err := writeIndex(writer, elem.pattern, indent, inPath); err != nil {
 						return ast.WalkStop, err
 					}
 					if elem.Name() != command || elem.Depth() != len(location) {

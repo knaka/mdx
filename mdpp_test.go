@@ -151,15 +151,17 @@ func TestToc(t *testing.T) {
 	expected := []byte(`TOC:
 
 <!-- mdppindex pattern=misc/*.md -->
-* [Bar ドキュメント](misc/bar.md)
-* [misc/foo.md](misc/foo.md)
+* misc
+  * [Bar ドキュメント](misc/bar.md)
+  * [foo.md](misc/foo.md)
 <!-- /mdppindex -->
 
 * foo
 
   <!-- mdppindex pattern=misc/*.md -->
-  * [Bar ドキュメント](misc/bar.md)
-  * [misc/foo.md](misc/foo.md)
+  * misc
+    * [Bar ドキュメント](misc/bar.md)
+    * [foo.md](misc/foo.md)
   <!-- /mdppindex -->
 
 `)
@@ -369,6 +371,28 @@ func TestCodeBlockWithBlankLines(t *testing.T) {
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err != nil {
 		t.Fatal("error")
+	}
+	if bytes.Compare(expected, output.Bytes()) != 0 {
+		t.Fatalf(`Unmatched:
+
+%s`, diff.LineDiff(string(expected), output.String()))
+	}
+}
+
+func TestIndexRec(t *testing.T) {
+	input := bytes.NewBufferString(`<!-- mdppindex pattern=misc/**/*.txt -->
+<!-- /mdppindex -->
+`)
+	expected := []byte(`<!-- mdppindex pattern=misc/**/*.txt -->
+* misc/dir1/dir1-1
+  * [foo.txt](misc/dir1/dir1-1/foo.txt)
+* misc/dir2
+  * [bar.txt](misc/dir2/bar.txt)
+<!-- /mdppindex -->
+`)
+	output := bytes.NewBuffer(nil)
+	if err := PreprocessWithoutDir(output, input); err != nil {
+		t.Fatal(err.Error())
 	}
 	if bytes.Compare(expected, output.Bytes()) != 0 {
 		t.Fatalf(`Unmatched:
