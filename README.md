@@ -57,19 +57,19 @@ the following output. The metacommands in the output remain as they were in the 
 
 When mdpp(1) updates the Markdown listing of the files in a directory, the following input will:
 
-    <!-- mdpptoc pattern=docs/*.md -->
+    <!-- mdppindex pattern=docs/*.md -->
     * [Already deleted document](docs/deleted.md)
     * [Hello document](docs/hello.md)
     * [World document](docs/world.md)
-    <!-- /mdpptoc -->
+    <!-- /mdppindex -->
 
 make the following output. Supported style for writing titles are YAML metadata, Pandoc title blocks, and MultiMarkdown style. If the file itself is included in the list, it will not be a link.
 
-    <!-- mdpptoc pattern=docs/*.md -->
+    <!-- mdppindex pattern=docs/*.md -->
     * [Hello document](docs/hello.md)
     * [New document](docs/new.md)
     * [World document](docs/world.md)
-    <!-- /mdpptoc -->
+    <!-- /mdppindex -->
 
 As an example of an in-place setting, VSCode's plugin “[Run on Save](https://marketplace.visualstudio.com/items?itemName=pucelle.run-on-save)” will automatically run when saving a Markdown file. To run it automatically when saving a Markdown file, the following settings are used.
 

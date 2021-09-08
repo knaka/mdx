@@ -40,11 +40,11 @@ func (elem *mdppCodeElem) Name() string {
 	return "mdppcode"
 }
 
-type mdppTocElem struct {
+type mdppIndexElem struct {
 	mdppElem
 	pattern string
 }
 
-func (elem *mdppTocElem) Name() string {
-	return "mdpptoc"
+func (elem *mdppIndexElem) Name() string {
+	return "mdppindex"
 }

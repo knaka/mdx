@@ -55,19 +55,19 @@ Markdown 文書のコードブロックに他のファイルのコードを取�
 
 ディレクトリ内の Markdown の一覧を更新する場合には、例えば下記のような入力に対し:
 
-    <!-- mdpptoc pattern=docs/*.md -->
+    <!-- mdppindex pattern=docs/*.md -->
     * [Already deleted document](docs/deleted.md)
     * [Hello document](docs/hello.md)
     * [World document](docs/world.md)
-    <!-- /mdpptoc -->
+    <!-- /mdppindex -->
 
 下記のような出力を行う。タイトルの記述方法しとては、YAML メタデータ、Pandoc タイトルブロック、MultiMarkdown スタイルに対応している。自身のファイルが一覧に含まれる場合は、それはリンクにならない。
 
-    <!-- mdpptoc pattern=docs/*.md -->
+    <!-- mdppindex pattern=docs/*.md -->
     * [Hello document](docs/hello.md)
     * [New document](docs/new.md)
     * [World document](docs/world.md)
-    <!-- /mdpptoc -->
+    <!-- /mdppindex -->
 
 In-place での設定例としては、VSCode の [Run on Save](https://marketplace.visualstudio.com/items?itemName=pucelle.run-on-save) プラグインでは、Markdown ファイルをセーブする際に自動的に実行するには、下記のような設定になる。
 

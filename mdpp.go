@@ -217,10 +217,10 @@ func Preprocess(writerOut io.Writer, reader io.Reader,
 					} else {
 						return ast.WalkStop, NewError("attribute \"src\" required", absPath, source, firstLine.Start)
 					}
-				case "mdpptoc":
+				case "mdppindex":
 					key := match[3]
 					if key == "pattern" {
-						mdppStack = append(mdppStack, &mdppTocElem{mdppElem, match[4]})
+						mdppStack = append(mdppStack, &mdppIndexElem{mdppElem, match[4]})
 					} else {
 						return ast.WalkStop, NewError("attribute \"pattern\" required", absPath, source, firstLine.Start)
 					}
@@ -241,10 +241,10 @@ func Preprocess(writerOut io.Writer, reader io.Reader,
 					if len(mdppStack) > 0 && mdppStack[len(mdppStack)-1].Name() == command && mdppStack[len(mdppStack)-1].Depth() == len(location) {
 						mdppStack = mdppStack[:len(mdppStack)-1]
 					}
-				case "mdpptoc":
+				case "mdppindex":
 					firstSegment := segments.At(0)
 					indent := getIndentBeforeSegment(firstSegment, source)
-					elem, ok := mdppStack[len(mdppStack)-1].(*mdppTocElem)
+					elem, ok := mdppStack[len(mdppStack)-1].(*mdppIndexElem)
 					if !ok {
 						return ast.WalkStop, NewError("downcast failed", absPath, source, firstLine.Start)
 

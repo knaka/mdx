@@ -138,29 +138,29 @@ Done
 func TestToc(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdpptoc pattern=misc/*.md -->
-<!-- /mdpptoc -->
+<!-- mdppindex pattern=misc/*.md -->
+<!-- /mdppindex -->
 
 * foo
 
-  <!-- mdpptoc pattern=misc/*.md -->
+  <!-- mdppindex pattern=misc/*.md -->
   foo  
-  <!-- /mdpptoc -->
+  <!-- /mdppindex -->
 
 `)
 	expected := []byte(`TOC:
 
-<!-- mdpptoc pattern=misc/*.md -->
+<!-- mdppindex pattern=misc/*.md -->
 * [Bar ドキュメント](misc/bar.md)
 * [misc/foo.md](misc/foo.md)
-<!-- /mdpptoc -->
+<!-- /mdppindex -->
 
 * foo
 
-  <!-- mdpptoc pattern=misc/*.md -->
+  <!-- mdppindex pattern=misc/*.md -->
   * [Bar ドキュメント](misc/bar.md)
   * [misc/foo.md](misc/foo.md)
-  <!-- /mdpptoc -->
+  <!-- /mdppindex -->
 
 `)
 	output := bytes.NewBuffer(nil)
@@ -177,7 +177,7 @@ func TestToc(t *testing.T) {
 func TestTocDifferentDepth(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdpptoc pattern=misc/*.md -->
+<!-- mdppindex pattern=misc/*.md -->
 * foo
 * bar
 
@@ -185,7 +185,7 @@ other document
 
 * foo
 
-  <!-- /mdpptoc -->
+  <!-- /mdppindex -->
 `)
 	output := bytes.NewBuffer(nil)
 	if err := PreprocessWithoutDir(output, input); err == nil {
@@ -315,9 +315,9 @@ func TestUnknown(t *testing.T) {
 func TestTocFail(t *testing.T) {
 	input := bytes.NewBufferString(`TOC:
 
-<!-- mdpptoc pattern=misc/*.md -->
-<!-- /mdpptoc -->
-<!-- /mdpptoc -->
+<!-- mdppindex pattern=misc/*.md -->
+<!-- /mdppindex -->
+<!-- /mdppindex -->
 
 `)
 	output := bytes.NewBuffer(nil)
