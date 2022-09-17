@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	fileex "github.com/spiegel-im-spiegel/file"
+	be "github.com/thomasheller/braceexpansion"
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/ast"
@@ -26,9 +27,26 @@ func writeIndex(writer io.Writer, wildcard string, indent string, includerPath s
 	if err != nil {
 		return err
 	}
-	paths, err := fileex.Glob(wildcard)
+	// paths, err := fileex.Glob(wildcard)
+	tree, err := be.New().Parse(wildcard)
 	if err != nil {
 		return err
+	}
+	var paths []string
+	for _, pattern := range tree.Expand() {
+		pathsNew, err := fileex.Glob(pattern)
+		if err != nil {
+			return err
+		}
+		paths = append(paths, pathsNew...)
+	}
+	if err != nil {
+		return err
+	}
+	for i, path := range paths {
+		if !strings.ContainsRune(path, '/') {
+			paths[i] = "./" + path
+		}
 	}
 	sort.Strings(paths)
 	dirnamePrev := ""
@@ -42,7 +60,7 @@ func writeIndex(writer io.Writer, wildcard string, indent string, includerPath s
 		if filepath.Separator != '/' {
 			dirname = filepath.ToSlash(dirname)
 		}
-		if dirname != dirnamePrev {
+		if dirname != "." && dirname != dirnamePrev {
 			if _, err := fmt.Fprintln(writer, indent+"* "+dirname); err != nil {
 				return err
 			}
